@@ -1,2 +1,5 @@
 .uptodate
 vault_exporter
+.idea
+
+bin/
