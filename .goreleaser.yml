@@ -1,0 +1,52 @@
+project_name: "vault-exporter"
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - main: ./main.go
+    id: "vault-exporter"
+    binary: vault-exporter
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: windows
+        goarch: 386
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+checksum:
+  algorithm: sha256
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  github:
+    owner: maxkulish
+    name: vault-exporter
+
+  draft: true  # will not auto-publish the release.
+
+  header: |
+    ## Vault-exporter release ({{ .Date }})
