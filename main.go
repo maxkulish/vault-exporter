@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"github.com/giantswarm/vault-exporter/log"
 	"net/http"
 	"os"
 
@@ -8,27 +10,16 @@ import (
 	vault_api "github.com/hashicorp/vault/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	listenAddress = kingpin.Flag("web.listen-address",
-		"Address to listen on for web interface and telemetry.").
-		Default(":9410").String()
-	metricsPath = kingpin.Flag("web.telemetry-path",
-		"Path under which to expose metrics.").
-		Default("/metrics").String()
-	vaultCACert = kingpin.Flag("vault-tls-cacert",
-		"The path to a PEM-encoded CA cert file to use to verify the Vault server SSL certificate.").String()
-	vaultClientCert = kingpin.Flag("vault-tls-client-cert",
-		"The path to the certificate for Vault communication.").String()
-	vaultClientKey = kingpin.Flag("vault-tls-client-key",
-		"The path to the private key for Vault communication.").String()
-	sslInsecure = kingpin.Flag("insecure-ssl",
-		"Set SSL to ignore certificate validation.").
-		Default("false").Bool()
+	listenAddress   = flag.String("web.listen-address", ":9410", "Address to listen on for web interface and telemetry.")
+	metricsPath     = flag.String("web.telemetry-path", "/metrics", "Path under which to expose metrics.")
+	vaultCACert     = flag.String("vault-tls-cacert", "", "The path to a PEM-encoded CA cert file to use to verify the Vault server SSL certificate.")
+	vaultClientCert = flag.String("vault-tls-client-cert", "", "The path to the certificate for Vault communication.")
+	vaultClientKey  = flag.String("vault-tls-client-key", "", "The path to the private key for Vault communication.")
+	sslInsecure     = flag.Bool("insecure-ssl", false, "Set SSL to ignore certificate validation.")
 )
 
 const (
@@ -170,13 +161,10 @@ func mainE() error {
 		return nil
 	}
 
-	log.AddFlags(kingpin.CommandLine)
-	kingpin.Version(version.Print("vault_exporter"))
-	kingpin.HelpFlag.Short('h')
-	kingpin.Parse()
+	flag.Parse()
 
-	log.Infoln("Starting vault_exporter", version.Info())
-	log.Infoln("Build context", version.BuildContext())
+	log.Infof("Starting vault_exporter", version.Info())
+	log.Infof("Build context", version.BuildContext())
 
 	exporter, err := NewExporter()
 	if err != nil {
@@ -201,7 +189,7 @@ func mainE() error {
 		}
 	})
 
-	log.Infoln("Listening on", *listenAddress)
+	log.Infof("Listening on", *listenAddress)
 
 	err = http.ListenAndServe(*listenAddress, nil)
 	if err != nil {
